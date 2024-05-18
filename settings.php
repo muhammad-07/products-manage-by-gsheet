@@ -86,8 +86,7 @@ function gsheet_products_section_callback() {
 
 function field_sheet_name() {
     $option = get_option('gsheet_name');
-    echo "<input type='text' class='input-width' name='gsheet_name' value='$option' placeholder='Sheet1' />
-    <span title='Help' class='dashicons dashicons-info'></span>";
+    echo "<input type='text' class='input-width' name='gsheet_name' value='$option' placeholder='Sheet1' />";
 }
 function field_sheet_id() {
     $option = get_option('gsheet_id');
@@ -95,7 +94,7 @@ function field_sheet_id() {
 }
 function api_key_callback() {
     $option = get_option('gsheet_api_key');
-    echo "<input type='text' class='input-width' name='gsheet_api_key' value='$option' />";
+    echo "<input type='text' class='input-width' name='gsheet_api_key' value='$option' /><span title='Goto https://support.google.com/googleapi/answer/6158862 to get your google sheet API Key' class='dashicons dashicons-info'></span>";
 }
 // Step 3: Save Values
 // WordPress will handle saving the values automatically when you submit the form.

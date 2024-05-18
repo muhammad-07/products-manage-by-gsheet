@@ -157,6 +157,13 @@ class Products_Manage_By_Gsheet {
 				'permission_callback' => '__return_true',
 			));
 		});
+		add_action('rest_api_init', function () {
+			register_rest_route('sheetsProducts/v4', 'deleteGoogleDriveProducts', array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => 'productdata_main',
+				'permission_callback' => '__return_true',
+			));
+		});
 		//create product api call
 add_action('rest_api_init', function () {
     register_rest_route('sheetsProducts/v3', 'addGoogleDriveProducts', array(

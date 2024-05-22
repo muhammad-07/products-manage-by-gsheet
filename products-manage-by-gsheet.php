@@ -16,7 +16,7 @@
  * Plugin Name:       Products Manage By GSheet
  * Plugin URI:        https://adbrains.in
  * Description:       Plugin to manage products via Google sheet
- * Version:           2.0.2
+ * Version:           2.0.4
  * Author:            Adbrains
  * Author URI:        https://adbrains.in/
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if (!defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('PRODUCTS_MANAGE_BY_GSHEET_VERSION', '2.0.2');
+define('PRODUCTS_MANAGE_BY_GSHEET_VERSION', '2.0.4');
 
 /**
  * The code that runs during plugin activation.
@@ -119,39 +119,41 @@ require_once('utilities.php');
 function fetch_sheet()
 {
     $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . SPREAD_SHEET_ID . '/values/' . SPREAD_SHEET_NAME . '?key=' . SPREAD_SHEET_API_KEY;
+    
     $response = wp_remote_get($url);
     if (is_wp_error($response)) {
+       
         error_log($response->get_error_message());
         return $response->get_error_message();
     } else {
+        
         return json_decode(wp_remote_retrieve_body($response), true);
         
     }
 }
 function productdata_main()
 {
-    
-        $data = fetch_sheet();       
 
-        if (isset($data['values']) && !empty($data['values'])) {
-            error_log('count total sheet rows: '.count($data['values']));
-           
-            google_drive_sheet($data['values']);
-            // deleteProductsNotFoundInSheet($data['values'];
-        }
-    
+    $data = fetch_sheet();
+
+    if (isset($data['values']) && !empty($data['values'])) {
+        error_log('count total sheet rows: ' . count($data['values']));
+
+        google_drive_sheet($data['values']);
+        // deleteProductsNotFoundInSheet($data['values'];
+    }
 }
 add_action('insert_products_via_crons', 'productdata_main');
 add_action('delete_products_via_crons', 'productdata_delete');
 
 function productdata_delete()
 {
-    $data = fetch_sheet();       
+    $data = fetch_sheet();
 
-        if (isset($data['values']) && !empty($data['values'])) {
-            error_log('Delete initiated: '.count($data['values']));
-            deleteProductsNotFoundInSheet($data['values']);
-        }
+    if (isset($data['values']) && !empty($data['values'])) {
+        error_log('Delete initiated: ' . count($data['values']));
+        deleteProductsNotFoundInSheet($data['values']);
+    }
 }
 
 
@@ -170,7 +172,7 @@ function google_drive_sheet($productsData)
 
     $productCreate = array();
     $productUpdate = array();
-    $productSKUarray = array();
+    // $productSKUarray = array();
 
     foreach ($productsData as $index => $products) {
 
@@ -328,18 +330,21 @@ function google_drive_sheet($productsData)
             );
 
             $product_images = get_google_drive_thumbnail_urls($productImages);
-            
-            $productDetailsArray['meta_data'] = array(
-                array(
-                    'key'   => '_custom_product_images_url',
-                    'value' => $product_images
-                ),
-            );
-            if(is_array($product_images)){
-                $productDetailsArray['meta_data'][] = array(
-                    'key'   => '_custom_product_gallery_urls',
-                    'value' => $product_images,
+
+            if (is_array($product_images)) {
+                $productDetailsArray['meta_data'] = array(
+                    array(
+                        'key'   => '_custom_product_images_url',
+                        'value' => $product_images[0]
+                    ),
                 );
+
+                if (count($product_images) > 1) {
+                    $productDetailsArray['meta_data'][] = array(
+                        'key'   => '_custom_product_gallery_urls',
+                        'value' => $product_images,
+                    );
+                }
             }
             if (is_object($productId) && $productId->get_id() > 0) {
                 $productDetailsArray['id'] = $productId->get_id();
@@ -357,13 +362,15 @@ function google_drive_sheet($productsData)
     $productUpdate_chunk = array_chunk($productUpdate, SHEET_BATCH);
     updateProductFromSheet($productUpdate_chunk);
 }
-function get_google_drive_thumbnail_urls($urls) {
+function get_google_drive_thumbnail_urls($urls)
+{
     // Split the input string by new lines to get individual URLs
     $url_array = preg_split('/\r\n|\r|\n/', $urls);
     $converted_urls = array();
 
     foreach ($url_array as $url) {
         // Check if the URL contains 'drive.google'
+        if (trim($url) == '') continue;
         if (strpos($url, 'drive.google') !== false) {
             // Extract the file ID from the URL
             preg_match('/\/d\/(.*?)\//', $url, $matches);
@@ -390,7 +397,7 @@ function get_google_drive_thumbnail_urls($urls) {
 //     if (strpos($url, 'drive.google') !== false) {
 //         // Extract the file ID from the URL
 //         preg_match('/\/d\/(.*?)\//', $url, $matches);
-        
+
 //         if (isset($matches[1])) {
 //             $file_id = $matches[1];
 //             // Construct the custom thumbnail URL
@@ -533,7 +540,7 @@ function deleteProductsNotFoundInSheet($productsData)
         'post_type' => 'product',
         'posts_per_page' => -1,
         'fields' => 'ids',
-        'post_status' => get_post_stati() 
+        'post_status' => get_post_stati()
     );
 
     $liveSiteSKUs = array();
@@ -557,7 +564,7 @@ function deleteProductsNotFoundInSheet($productsData)
             wp_delete_post($productToDelete, true);
             // error_log('Product with SKU ' . $skuToDelete . ' has been deleted.');
         } else {
-            error_log( 'Product with SKU ' . $skuToDelete . ' not found.');
+            error_log('Product with SKU ' . $skuToDelete . ' not found.');
         }
     }
 }

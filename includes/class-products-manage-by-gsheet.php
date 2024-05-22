@@ -160,7 +160,7 @@ class Products_Manage_By_Gsheet {
 		add_action('rest_api_init', function () {
 			register_rest_route('sheetsProducts/v4', 'deleteGoogleDriveProducts', array(
 				'methods' => WP_REST_Server::READABLE,
-				'callback' => 'productdata_main',
+				'callback' => 'productdata_delete',
 				'permission_callback' => '__return_true',
 			));
 		});

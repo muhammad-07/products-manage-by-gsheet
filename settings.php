@@ -1,48 +1,57 @@
 <?php
+// Add a new settings tab
+add_filter('woocommerce_settings_tabs_array', 'gsheet_add_settings_tab', 50);
 
-function gsheet_add_section($sections) {
-    $sections['gsheet_products'] = __('GSheet Products', 'text-domain');
-    return $sections;
+function gsheet_add_settings_tab($tabs) {
+    $tabs['gsheet_products'] = __('GSheet Products', 'text-domain');
+    return $tabs;
 }
-add_filter('woocommerce_get_sections_advanced', 'gsheet_add_section');
 
-function gsheet_all_settings($settings, $current_section) {
-    if ($current_section == 'gsheet_products') {
-        $gsheet_settings = array();
+// Show settings content
+add_action('woocommerce_settings_tabs_gsheet_products', 'gsheet_settings_tab_content');
 
-        // Add Title to the Settings
-        $gsheet_settings[] = array(
-            'name' => __('GSheet Products Settings', 'text-domain'),
-            'type' => 'title',
-            'desc' => __('The following options are used to configure GSheet Products', 'text-domain'),
-            'id'   => 'gsheet_products_title'
-        );
+function gsheet_settings_tab_content() {
+    woocommerce_admin_fields(gsheet_get_settings());
+}
 
-        // Add a Text Field
-        $gsheet_settings[] = array(
-            'name' => __('Google Sheet ID', 'text-domain'),
+// Define settings
+function gsheet_get_settings() {
+    $settings = array(
+        'section_title' => array(
+            'name'     => __('GSheet Products Settings', 'text-domain'),
+            'type'     => 'title',
+            'desc'     => __('Configure the GSheet Products settings below.', 'text-domain'),
+            'id'       => 'gsheet_products_title'
+        ),
+        'gsheet_api_key' => array(
+            'name' => __('Google Sheet API Key', 'text-domain'),
+            'type' => 'text',
+            'desc' => __('Enter your Google Sheet API Key.', 'text-domain'),
+            'id'   => 'gsheet_api_key'
+        ),
+        'gsheet_id' => array(
+            'name' => __('Sheet ID', 'text-domain'),
             'type' => 'text',
             'desc' => __('Enter your Google Sheet ID.', 'text-domain'),
-            'id'   => 'gsheet_products_google_sheet_id'
-        );
-
-        // Add a Checkbox Field
-        $gsheet_settings[] = array(
-            'name' => __('Enable Sync', 'text-domain'),
-            'type' => 'checkbox',
-            'desc' => __('Enable Google Sheets sync.', 'text-domain'),
-            'id'   => 'gsheet_products_enable_sync'
-        );
-
-        // Add Section End
-        $gsheet_settings[] = array(
+            'id'   => 'gsheet_id'
+        ),
+        'gsheet_name' => array(
+            'name' => __('Sheet Name', 'text-domain'),
+            'type' => 'text',
+            'desc' => __('Enter your Google Sheet Name.', 'text-domain'),
+            'id'   => 'gsheet_name'
+        ),
+        'section_end' => array(
             'type' => 'sectionend',
             'id'   => 'gsheet_products_end'
-        );
-
-        return $gsheet_settings;
-    } else {
-        return $settings;
-    }
+        )
+    );
+    return apply_filters('gsheet_get_settings', $settings);
 }
-add_filter('woocommerce_get_settings_advanced', 'gsheet_all_settings', 10, 2);
+
+// Save settings
+add_action('woocommerce_update_options_gsheet_products', 'gsheet_update_settings');
+
+function gsheet_update_settings() {
+    woocommerce_update_options(gsheet_get_settings());
+}
